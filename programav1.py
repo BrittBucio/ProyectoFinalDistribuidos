@@ -1,55 +1,52 @@
 import socket
 import threading
 
-def recibir_mensajes(cliente, direccion):
-    while True:
-        try:
-            datos_recibidos = cliente.recv(1024)
-            if datos_recibidos:
-                mensaje = datos_recibidos.decode('utf-8')
-                print(f"Mensaje recibido de {direccion}: {mensaje}")
-        except:
-            break
+class Nodo:
+    def __init__(self, host = '127.0.0.1', puerto = 55555):
+        self.nickname = input("Elige un nombre de usuario: ")
+        self.nodo = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.nodo.bind((host, puerto))
+        self.nodo.listen()
+        self.clientes = []
 
-def cliente(ip, puerto):
-    cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        cliente.connect((ip, puerto))
-        print(f"Conectado al servidor en {ip}:{puerto}")
-
-        recibir_hilo = threading.Thread(target=recibir_mensajes, args=(cliente, ip))
-        recibir_hilo.start()
-
+    def manejar_cliente(self, cliente):
         while True:
-            mensaje = input("Mensaje para enviar al servidor: ")
-            cliente.sendall(mensaje.encode('utf-8'))
-    except Exception as e:
-        print(f"Error al conectar al servidor: {e}")
-    finally:
-        cliente.close()
+            try:
+                mensaje = cliente.recv(1024).decode('ascii')
+                self.transmitir(mensaje, cliente)
+            except:
+                index = self.clientes.index(cliente)
+                self.clientes.remove(cliente)
+                cliente.close()
+                print("Cliente desconectado!")
+                break
 
-def servidor(puerto):
-    servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    servidor.bind(('0.0.0.0', puerto))
-    servidor.listen(5)
-    print(f"Servidor escuchando en el puerto {puerto}")
+    def transmitir(self, mensaje, cliente):
+        for c in self.clientes:
+            if c != cliente:
+                c.send(mensaje)
 
-    while True:
-        cliente, direccion = servidor.accept()
-        print(f"Conexión entrante desde {direccion}")
-
-        recibir_hilo = threading.Thread(target=recibir_mensajes, args=(cliente, direccion[0]))
-        recibir_hilo.start()
-
+    def recibir(self):
         while True:
-            mensaje = input("Mensaje para enviar al cliente: ")
-            cliente.sendall(mensaje.encode('utf-8'))
+            cliente, direccion = self.nodo.accept()
+            print(f"Conectado con {str(direccion)}")
+            self.clientes.append(cliente)
+            thread = threading.Thread(target=self.manejar_cliente, args=(cliente,))
+            thread.start()
 
-if __name__ == "__main__":
-    puerto = int(input("Ingrese el puerto en el que estará conectado: "))
+    def escribir(self):
+        while True:
+            if len(self.clientes) > 0:
+                mensaje = f'{self.nickname}: {input("")}'
+                for cliente in self.clientes:
+                    cliente.send(mensaje.encode('ascii'))
 
-    servidor_hilo = threading.Thread(target=servidor, args=(puerto,))
-    servidor_hilo.start()
+    def iniciar(self):
+        thread_recibir = threading.Thread(target=self.recibir)
+        thread_recibir.start()
 
-    cliente_hilo = threading.Thread(target=cliente, args=('127.0.0.1', puerto))
-    cliente_hilo.start()
+        thread_escribir = threading.Thread(target=self.escribir)
+        thread_escribir.start()
+
+nodo = Nodo()
+nodo.iniciar()
