@@ -44,10 +44,10 @@ def start_server():
 
 def start_client():
     nodos = {
-        'A': '192.168.11.129',
-        'B': '192.168.11.130',
-        'C': '192.168.11.131',
-        'D': '192.168.11.132'
+        'A': '192.168.96.128',
+        'B': '192.168.96.130',
+        'C': '192.168.96.131',
+        'D': '192.168.96.132'
     }
 
     print("Nodos disponibles:")
@@ -96,7 +96,7 @@ def start_client():
 
     client_socket.close()
 
-if name == 'main':
+if __name__ == '__main__':
     mode = input("Elige el modo (1 para servidor, 2 para cliente): ")
 
     if mode == '1':
