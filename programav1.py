@@ -1,6 +1,9 @@
 import socket
 import threading
 
+# Lock para el archivo compartido
+lock_archivo = threading.Lock()
+
 def recibir_mensajes(cliente, direccion, archivo):
     while True:
         try:
@@ -8,7 +11,8 @@ def recibir_mensajes(cliente, direccion, archivo):
             if datos_recibidos:
                 mensaje = datos_recibidos.decode('utf-8')
                 print(f"Mensaje recibido de {direccion}: {mensaje}")
-                archivo.write(f"Mensaje recibido de {direccion}: {mensaje}\n")
+                with lock_archivo:
+                    archivo.write(f"Mensaje recibido de {direccion}: {mensaje}\n")
         except:
             break
 
@@ -24,7 +28,8 @@ def cliente(ip, puerto, archivo):
         while True:
             mensaje = input()
             cliente.sendall(mensaje.encode('utf-8'))
-            archivo.write(f"Mensaje enviado a {ip}:{puerto}: {mensaje}\n")
+            with lock_archivo:
+                archivo.write(f"Mensaje enviado a {ip}:{puerto}: {mensaje}\n")
     except Exception as e:
         print(f"Error al conectar al servidor: {e}")
     finally:
@@ -46,7 +51,8 @@ def servidor(puerto, archivo):
         while True:
             mensaje = input()
             cliente.sendall(mensaje.encode('utf-8'))
-            archivo.write(f"Mensaje enviado a {direccion[0]}:{puerto}: {mensaje}\n")
+            with lock_archivo:
+                archivo.write(f"Mensaje enviado a {direccion[0]}:{puerto}: {mensaje}\n")
 
 if __name__ == "__main__":
     puerto = int(input("Ingrese el puerto en el que estará conectado: "))
