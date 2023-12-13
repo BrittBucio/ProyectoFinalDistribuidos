@@ -75,28 +75,28 @@ def start_server():
 
     #********************************************************************************************************************************
     def ring_algorithm(selected_node):
-    # Obtener la lista de nodos en orden de su prioridad para la elección
-    nodes_priority_order = ['A', 'B', 'C', 'D']  # Cambia según la lógica de prioridad
-
-    # Obtener el índice del nodo actual en la lista
-    current_node_index = nodes_priority_order.index(selected_node)
-
-    # El nodo actual envía un mensaje de elección al siguiente nodo en el anillo
-    next_node_index = (current_node_index + 1) % len(nodes_priority_order)
-    next_node = nodes_priority_order[next_node_index]
-
-    # Mensaje a enviar al siguiente nodo
-    message = "Mensaje de elección"
-
-    # Establecer la conexión con el siguiente nodo y enviar el mensaje
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:
-        siguiente_ip = nodos[next_node]  # Obtener la IP del siguiente nodo
-        puerto = 12345  # Puerto al que escucha el siguiente nodo
-
-        cliente.connect((siguiente_ip, puerto))
-        cliente.sendall(message.encode('utf-8'))
-
-    print(f"Mensaje enviado al siguiente nodo ({next_node}): {message}")
+        # Obtener la lista de nodos en orden de su prioridad para la elección
+        nodes_priority_order = ['A', 'B', 'C', 'D']  # Cambia según la lógica de prioridad
+    
+        # Obtener el índice del nodo actual en la lista
+        current_node_index = nodes_priority_order.index(selected_node)
+    
+        # El nodo actual envía un mensaje de elección al siguiente nodo en el anillo
+        next_node_index = (current_node_index + 1) % len(nodes_priority_order)
+        next_node = nodes_priority_order[next_node_index]
+    
+        # Mensaje a enviar al siguiente nodo
+        message = "Mensaje de elección"
+    
+        # Establecer la conexión con el siguiente nodo y enviar el mensaje
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:
+            siguiente_ip = nodos[next_node]  # Obtener la IP del siguiente nodo
+            puerto = 12345  # Puerto al que escucha el siguiente nodo
+    
+            cliente.connect((siguiente_ip, puerto))
+            cliente.sendall(message.encode('utf-8'))
+    
+        print(f"Mensaje enviado al siguiente nodo ({next_node}): {message}")
     #********************************************************************************************************************************
 
     def receive_messages():
@@ -106,8 +106,8 @@ def start_server():
                 break
             print(f"Mensaje recibido del otro nodo ({selected_node}): {message}")
 
-    receiver_thread = threading.Thread(target=receive_messages)
-    receiver_thread.start()
+        receiver_thread = threading.Thread(target=receive_messages)
+        receiver_thread.start()
 
     while True:
         message = input("Escribe tu mensaje (o 'exit' para salir): ")
