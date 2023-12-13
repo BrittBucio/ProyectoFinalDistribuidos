@@ -1,3 +1,4 @@
+
 import socket
 import threading
 import time
@@ -22,7 +23,7 @@ def handle_client(client_socket, address, messages, file):
 
     client_socket.close()
 
-def start_server():
+def start_client():
     host = '0.0.0.0'
     port = 12345
 
@@ -42,12 +43,12 @@ def start_server():
         client_handler = threading.Thread(target=handle_client, args=(client_socket, addr, messages, file))
         client_handler.start()
 
-def start_client():
+def start_server():
     nodos = {
-        'A': '192.168.96.128',
-        'B': '192.168.96.130',
-        'C': '192.168.96.131',
-        'D': '192.168.96.132'
+        'A': '192.168.11.134',
+        'B': '192.168.11.135',
+        'C': '192.168.11.136',
+        'D': '192.168.11.137'
     }
 
     print("Nodos disponibles:")
@@ -72,6 +73,32 @@ def start_client():
         with open(file_a, 'w'):
             pass
 
+    #********************************************************************************************************************************
+    def ring_algorithm(selected_node):
+    # Obtener la lista de nodos en orden de su prioridad para la elección
+    nodes_priority_order = ['A', 'B', 'C', 'D']  # Cambia según la lógica de prioridad
+
+    # Obtener el índice del nodo actual en la lista
+    current_node_index = nodes_priority_order.index(selected_node)
+
+    # El nodo actual envía un mensaje de elección al siguiente nodo en el anillo
+    next_node_index = (current_node_index + 1) % len(nodes_priority_order)
+    next_node = nodes_priority_order[next_node_index]
+
+    # Mensaje a enviar al siguiente nodo
+    message = "Mensaje de elección"
+
+    # Establecer la conexión con el siguiente nodo y enviar el mensaje
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:
+        siguiente_ip = nodos[next_node]  # Obtener la IP del siguiente nodo
+        puerto = 12345  # Puerto al que escucha el siguiente nodo
+
+        cliente.connect((siguiente_ip, puerto))
+        cliente.sendall(message.encode('utf-8'))
+
+    print(f"Mensaje enviado al siguiente nodo ({next_node}): {message}")
+    #********************************************************************************************************************************
+
     def receive_messages():
         while True:
             message = client_socket.recv(1024).decode('utf-8')
@@ -95,13 +122,11 @@ def start_client():
         client_socket.send(message.encode('utf-8'))
 
     client_socket.close()
-
-if __name__ == '__main__':
-    mode = input("Elige el modo (1 para servidor, 2 para cliente): ")
-
-    if mode == '1':
-        start_server()
-    elif mode == '2':
-        start_client()
-    else:
-        print("Modo no válido. Ingresa 1 para servidor o 2 para cliente.")
+    
+# Lógica para iniciar el algoritmo del anillo
+if __name__ == "__main__":
+    selected_node = 'A'  # Nodo actual seleccionado
+    ring_algorithm(selected_node)  
+    print(f"Nodo maestro: {master_node}")
+    slave_nodes = [node for node in nodes_priority_order if node != master_node]
+    print(f"Nodos esclavos: {slave_nodes}")
